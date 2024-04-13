@@ -9,9 +9,46 @@ import time
 import pandas as pd
 
 root = tk.Tk()
-root.title('phantomCL公式计算器_v1.0')
-root.iconbitmap('rosmontis.ico')
+root.title('phantomCL公式计算器v1.1')
 root.resizable(0,0)
+
+# 创建一个Tooltip类，接受一个widget和提示文本作为参数，暂时有bug，待修复
+# class Tooltip:
+#     def __init__(self, widget, text):
+#         self.widget = widget
+#         self.text = text
+#         self.tooltip = None
+#         self.enter_id = None
+#         self.leave_id = None
+#         self.widget.bind("<Enter>", self.delayed_show_tooltip)
+#         self.widget.bind("<Leave>", self.hide_tooltip)
+
+#     def delayed_show_tooltip(self, event):
+#         self.enter_id = self.widget.after(500, self.show_tooltip)
+
+#     def show_tooltip(self):
+#         if self.enter_id:
+#             self.widget.after_cancel(self.enter_id)
+#             self.enter_id = None
+
+#         x, y, cx, cy = self.widget.bbox("insert")
+#         x += self.widget.winfo_rootx() + 25
+#         y += self.widget.winfo_rooty() + 20
+
+#         self.tooltip = tk.Toplevel(self.widget)
+#         self.tooltip.wm_overrideredirect(True)
+#         self.tooltip.wm_geometry("+%d+%d" % (x, y))
+
+#         label = tk.Label(self.tooltip, text=self.text, background="#ffffe0", relief="solid", borderwidth=1)
+#         label.pack(ipadx=1)
+
+#     def hide_tooltip(self, event):
+#         if self.enter_id:
+#             self.widget.after_cancel(self.enter_id)
+#             self.enter_id = None
+
+#         if self.tooltip:
+#             self.tooltip.destroy()
 
 # 限制变量命名规则
 def is_valid_variable_name(var_name):
@@ -89,15 +126,15 @@ def simple_calculate():
         for i in range(run_time):
             root.update()
             var_name = var_list[i]
-            var_value = float(tk.simpledialog.askstring("值", f"请输入{var_name}变量值，请不要输入数字以外的字符(´・ω・`):").strip())
+            var_value = float(tk.simpledialog.askstring("值", f"请输入{var_name}变量值(´・ω・`):").strip())
             var_string = var_string + str(var_value) + '\t'
             res_expr = res_expr.subs(var_name, var_value).evalf()
         var_string += f'{res_expr}\n'
         res_datatext.insert(tk.END, var_string)
         write_log("INFO:简单运算完成！")
-    except Exception as e:
-        messagebox.showerror("错误", f"请生成计算式后传值，并检查输入数据(´・ω・`) ")
-        write_log("ERROR:请生成计算式后再运算，并检查输入数据")
+    except:
+        messagebox.showerror("错误", f"请生成计算式后传值(´・ω・`) ")
+        write_log("ERROR:请生成计算式后再运算")
 
 # 定义批量运算
 def batch_calculate():
@@ -147,7 +184,7 @@ def batch_calculate():
                 var_string += f'{res_expr}\n'
                 res_datatext.insert(tk.END, var_string)
             write_log("INFO:批量运算完成！")
-        except Exception as e:
+        except:
             messagebox.showerror("错误", f"嗯？计算出错了，请联系作者解决(´・ω・`) ")
             write_log("ERROR:未知错误，请联系作者")
         
@@ -197,29 +234,30 @@ root.protocol("WM_DELETE_WINDOW", _quit)
 
 ## 整体布局
 left_flame = tk.Frame(root)
-left_flame.pack(side='left')
+left_flame.pack(side='left', expand=True, fill=tk.BOTH)
 right_flame = tk.Frame(root)
-right_flame.pack(side='left')
+right_flame.pack(side='left', expand=True, fill=tk.BOTH)
 
 ### 步骤1
 first_frame = tk.LabelFrame(left_flame, text="步骤1：设置变量")
-first_frame.pack(pady=15, padx=10, fill=tk.X)
+first_frame.pack(pady=20, padx=10, fill=tk.BOTH)
 frame_1 = tk.Frame(first_frame)
 frame_1.pack(pady=10)
 var_label = tk.Label(frame_1, text="请输入计算式的变量数目：")
 var_label.pack(side='left')
 var_number = tk.Entry(frame_1, width=10)
 var_number.pack(side='left')
+#var_number.focus_set()  # 打开程序时的鼠标聚焦
 var_button = tk.Button(frame_1, text='确定', command=get_user_input)
 var_button.pack(side='left', padx=10)
 frame_2 = tk.Frame(first_frame)
 frame_2.pack()
 result_label = tk.Label(frame_2, text="请先输入待计算的变量数目和名称")
-result_label.pack(padx=10, pady=10)
+result_label.pack(padx=10, pady=20)
 
 ### 步骤2
 second_frame = tk.LabelFrame(left_flame, text="步骤2：设置计算式")
-second_frame.pack(pady=15,padx=10)
+second_frame.pack(pady=20,padx=10,expand=True,fill=tk.BOTH)
 # 初始化matplotlib图形
 fig, ax = plt.subplots(figsize=(5, 1))
 ax.axis('off')
@@ -231,14 +269,14 @@ formula_label = tk.Label(second_frame, text="生成的计算式")
 formula_label.pack(pady=5)
 canvas.get_tk_widget().pack(padx=10)
 frame_3 = tk.Frame(second_frame)
-frame_3.pack()
+frame_3.pack(ipady=10)
 generate_label = tk.Label(frame_3, text="输入计算式：")
-generate_label.pack(side='left', pady=40)
+generate_label.pack(side='left', pady=20)
 formula_entry = tk.Entry(frame_3, width=50)
-formula_entry.pack(side='left', pady=40)
+formula_entry.pack(side='left', pady=20)
 formula_entry.bind("<Return>", generate_formula)
 frame_4 = tk.Frame(second_frame)
-frame_4.pack()
+frame_4.pack(pady=20)
 exp_button = tk.Button(frame_4, text='自然数e', command=lambda: formula_entry.insert(tk.END, "exp(1)"))
 pi_button = tk.Button(frame_4, text='圆周率Π', command=lambda: formula_entry.insert(tk.END, "pi"))
 sqrt_button = tk.Button(frame_4, text='开根号√', command=lambda: formula_entry.insert(tk.END, "sqrt()"))
@@ -259,39 +297,39 @@ generate_button.pack(side="left",pady=10,padx=20)
 
 ### 步骤3
 third_frame = tk.LabelFrame(left_flame, text="步骤3：传值运算")
-third_frame.pack(pady=15,fill=tk.X,padx=10)
+third_frame.pack(pady=20,fill=tk.BOTH,padx=10)
 frame_5 = tk.Frame(third_frame)
-frame_5.pack(anchor="w",padx=45, pady=15)
+frame_5.pack(anchor="w",pady=10)
 simple_calculate_button = tk.Button(frame_5, text='简单运算', command=simple_calculate)
 # tooltip = Tooltip(simple_calculate_button, "点击后根据提示输入变量值运算")
-simple_calculate_button.pack(side="left", pady=5, padx=15)
+simple_calculate_button.pack(side="left", pady=5, padx=60)
 simple_calculate_label = tk.Label(frame_5, text="适用于数据量较少的情况，根据提示传值运算")
-simple_calculate_label.pack(side="left", padx=15)
+simple_calculate_label.pack(side="left")
 
 frame_6 = tk.Frame(third_frame)
-frame_6.pack(anchor="w",padx=45)
+frame_6.pack(anchor="w")
 batch_calculate_button = tk.Button(frame_6, text='批量运算', command=batch_calculate)
 # tooltip = Tooltip(batch_calculate_button, "点击后根据提示传入数据文件运算")
-batch_calculate_button.pack(side="left", pady=5, padx=15)
+batch_calculate_button.pack(side="left", pady=5, padx=60)
 batch_calculate_label = tk.Label(frame_6, text="适用于数据量较大的情况，传入Excel数据文件运算")
-batch_calculate_label.pack(side="left", padx=15)
+batch_calculate_label.pack(side="left")
 
 fram_7 = tk.Frame(third_frame)
-fram_7.pack()
+fram_7.pack(ipady=20)
 export_button = tk.Button(fram_7, text="保存结果", command=export_file)
 export_button.pack(side="left", padx=10, pady=10)
 # tooltip = Tooltip(export_button, "保存当前运算式与输出框中的结果")
-clean_button = tk.Button(fram_7, text="清空窗口", command=clear_window)
+clean_button = tk.Button(fram_7, text="清除窗口", command=clear_window)
 clean_button.pack(side="left", padx=10, pady=10)
 # tooltip = Tooltip(clean_button, "清除输出框中的结果和运行日志")
 
 
 ### 输出结果
 output_frame = tk.LabelFrame(right_flame, text="输出结果")
-output_frame.pack(pady=7,padx=10)
-res_datatext = ScrolledText(output_frame, wrap="none", width=40, height=25)
+output_frame.pack(pady=20,padx=10,expand=True,fill=tk.BOTH)
+res_datatext = ScrolledText(output_frame, wrap="none", width=40,height=30)
 res_datatext.bind('<KeyPress>', lambda f: 'break')
-res_datatext.pack(pady=10,padx=10)
+res_datatext.pack(pady=10,padx=10,expand=True,fill=tk.BOTH)
 
 scrollbar_data = tk.Scrollbar(output_frame, orient="horizontal", command=res_datatext.xview)
 res_datatext.config(xscrollcommand=scrollbar_data.set)
@@ -300,9 +338,9 @@ scrollbar_data.pack(side=tk.BOTTOM, fill=tk.X)
 
 ### 日志
 log_frame = tk.LabelFrame(right_flame, text="运行日志")
-log_frame.pack(pady=7,padx=10)
-log_text = ScrolledText(log_frame, width=40, height=10)
+log_frame.pack(pady=20,padx=10,expand=True, fill=tk.BOTH)
+log_text = ScrolledText(log_frame, width=40,height=10)
 log_text.bind('<KeyPress>', lambda f: 'break')
-log_text.pack(pady=10,padx=10)
+log_text.pack(pady=10,padx=10,expand=True,fill=tk.BOTH)
 
 root.mainloop()
